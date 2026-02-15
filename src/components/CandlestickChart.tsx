@@ -25,6 +25,8 @@ const DISPLAY_LIMITS: Record<Timeframe, number> = {
 interface CandlestickChartProps {
   data: AlphaVantageCandle[];
   timeframe: Timeframe;
+  height?: number;
+  highlightColor?: string;
 }
 
 // ---- Date formatting ----
@@ -78,8 +80,13 @@ function CandleTooltip({ active, payload }: { active?: boolean; payload?: Array<
 const UP_COLOR = "#22c55e";
 const DOWN_COLOR = "#ef4444";
 
-function CandlestickRenderer(props: { candleData?: AlphaVantageCandle[]; yMin?: number; yMax?: number }) {
-  const { candleData, yMin, yMax } = props;
+function CandlestickRenderer(props: {
+  candleData?: AlphaVantageCandle[];
+  yMin?: number;
+  yMax?: number;
+  highlightColor?: string;
+}) {
+  const { candleData, yMin, yMax, highlightColor } = props;
   const plotArea = usePlotArea();
 
   if (!plotArea || !candleData?.length || yMin == null || yMax == null) return null;
@@ -110,24 +117,25 @@ function CandlestickRenderer(props: { candleData?: AlphaVantageCandle[]; yMin?: 
         const isUp = candle.close >= candle.open;
         const isLast = i === n - 1;
         const color = isUp ? UP_COLOR : DOWN_COLOR;
+        const glowColor = isLast && highlightColor ? highlightColor : color;
         const bodyTop = Math.min(yOpen, yClose);
         const bodyHeight = Math.max(Math.abs(yOpen - yClose), 1);
 
         return (
           <g key={i}>
-            {/* Highlight glow on the latest candle */}
+            {/* Highlight glow on the latest candle — uses signal color */}
             {isLast && (
               <rect
-                x={cx - barWidth / 2 - 4}
-                y={Math.min(yHigh, yLow) - 4}
-                width={barWidth + 8}
-                height={Math.abs(yLow - yHigh) + 8}
-                rx={3}
-                fill={color}
-                fillOpacity={0.08}
-                stroke={color}
-                strokeWidth={1}
-                strokeOpacity={0.35}
+                x={cx - barWidth / 2 - 5}
+                y={Math.min(yHigh, yLow) - 5}
+                width={barWidth + 10}
+                height={Math.abs(yLow - yHigh) + 10}
+                rx={4}
+                fill={glowColor}
+                fillOpacity={0.12}
+                stroke={glowColor}
+                strokeWidth={1.5}
+                strokeOpacity={0.5}
               />
             )}
             {/* Wick */}
@@ -146,7 +154,7 @@ function CandlestickRenderer(props: { candleData?: AlphaVantageCandle[]; yMin?: 
               width={barWidth}
               height={bodyHeight}
               fill={color}
-              stroke={isLast ? "#e2e8f0" : color}
+              stroke={isLast ? glowColor : color}
               strokeWidth={isLast ? 1.5 : 0.5}
               rx={1}
             />
@@ -162,6 +170,8 @@ function CandlestickRenderer(props: { candleData?: AlphaVantageCandle[]; yMin?: 
 export default function CandlestickChart({
   data,
   timeframe,
+  height = 380,
+  highlightColor,
 }: CandlestickChartProps) {
   const displayData = useMemo(() => {
     const limit = DISPLAY_LIMITS[timeframe] || 60;
@@ -189,7 +199,7 @@ export default function CandlestickChart({
   const tickInterval = Math.max(Math.floor(displayData.length / 6), 1);
 
   return (
-    <ResponsiveContainer width="100%" height={380}>
+    <ResponsiveContainer width="100%" height={height}>
       <ComposedChart
         data={displayData}
         margin={{ top: 12, right: 12, bottom: 4, left: 4 }}
@@ -240,6 +250,7 @@ export default function CandlestickChart({
           candleData={displayData}
           yMin={yDomain[0]}
           yMax={yDomain[1]}
+          highlightColor={highlightColor}
         />
       </ComposedChart>
     </ResponsiveContainer>

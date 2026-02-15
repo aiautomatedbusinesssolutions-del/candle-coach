@@ -208,12 +208,18 @@ export async function fetchDailyCandles(
 
   let res: Response;
   try {
-    res = await fetch(url, { next: { revalidate: 300 } });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    res = await fetch(url, { signal: controller.signal, cache: "no-store" });
+    clearTimeout(timeout);
   } catch (err) {
-    throw new AlphaVantageError(
-      `Network error: ${err instanceof Error ? err.message : "Failed to reach Alpha Vantage"}`,
-      "NETWORK"
-    );
+    const msg =
+      err instanceof Error && err.name === "AbortError"
+        ? "Request timed out after 5 seconds"
+        : err instanceof Error
+          ? err.message
+          : "Failed to reach Alpha Vantage";
+    throw new AlphaVantageError(`Network error: ${msg}`, "NETWORK");
   }
 
   if (!res.ok) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AlphaVantageError } from "@/services/alphaVantage";
-import { searchSymbol } from "@/services/mockData"; // swap to @/services/alphaVantage for real API
+import { searchSymbol } from "@/services/mockData"; // kept on mock to save API quota
 
 export async function GET(request: NextRequest) {
   const keywords = request.nextUrl.searchParams.get("q");
