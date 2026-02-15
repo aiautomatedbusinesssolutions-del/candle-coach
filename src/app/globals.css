@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #020617;
+  --foreground: #e2e8f0;
 }
 
 @theme inline {
@@ -10,17 +10,20 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Traffic light signal palette */
+  --color-signal-buy: #22c55e;
+  --color-signal-sell: #ef4444;
+  --color-signal-wait: #eab308;
+  --color-signal-neutral: #64748b;
+
+  /* Candle colors */
+  --color-candle-green: #22c55e;
+  --color-candle-red: #ef4444;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
