@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Loader2, AlertTriangle, RefreshCw, BarChart3, Info } from "lucide-react";
+import { Loader2, AlertTriangle, RefreshCw, BarChart3 } from "lucide-react";
 import TickerSearch from "./TickerSearch";
 import CandlestickChart from "./CandlestickChart";
 import CandlestickIcon from "./CandlestickIcon";
@@ -24,13 +24,13 @@ export default function AnalysisView() {
   const [candles, setCandles] = useState<AlphaVantageCandle[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isFallback, setIsFallback] = useState(false);
+  const [isMockData, setIsMockData] = useState(false);
 
   const fetchMonthly = useCallback(async (symbol: string) => {
     console.log("DEBUG: fetchMonthly called for", symbol);
     setLoading(true);
     setError(null);
-    setIsFallback(false);
+    setIsMockData(false);
     try {
       const res = await fetch(
         `/api/candles?symbol=${encodeURIComponent(symbol)}&timeframe=monthly`
@@ -43,7 +43,7 @@ export default function AnalysisView() {
       const json = await res.json();
       console.log("DEBUG: got candles", json.candles?.length, "fallback:", json.fallback);
       setCandles(json.candles);
-      setIsFallback(json.fallback === true);
+      setIsMockData(json.fallback === true);
     } catch (err) {
       console.log("DEBUG: fetchMonthly error", err);
       setCandles([]);
@@ -64,6 +64,15 @@ export default function AnalysisView() {
   return (
     <div className="space-y-6">
       <TickerSearch onSelect={setTicker} />
+
+      {isMockData && (
+        <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2.5">
+          <span className="text-base leading-none">&#x26A0;&#xFE0F;</span>
+          <p className="text-sm font-medium text-amber-200">
+            API Limit Reached: Showing Demo Data. Please try again in 1 minute.
+          </p>
+        </div>
+      )}
 
       {!ticker && (
         <div className="flex h-72 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-slate-700 bg-slate-900/40">
@@ -95,16 +104,6 @@ export default function AnalysisView() {
 
       {ticker && !loading && !error && candles.length > 0 && (
         <>
-          {/* Rate-limit fallback banner */}
-          {isFallback && (
-            <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
-              <Info className="h-5 w-5 shrink-0 text-amber-400" />
-              <p className="text-sm text-amber-200">
-                Daily API limit reached. Using simulated data for now.
-              </p>
-            </div>
-          )}
-
           {/* Monthly Chart */}
           <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
             <div className="mb-3 flex items-center justify-between">
