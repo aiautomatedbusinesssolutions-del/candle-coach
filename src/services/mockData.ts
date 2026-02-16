@@ -1,4 +1,4 @@
-import type { AlphaVantageCandle, Timeframe, SymbolMatch } from "./alphaVantage";
+import type { AlphaVantageCandle, Timeframe } from "./alphaVantage";
 
 // --- Seed-based random for deterministic data per symbol ---
 
@@ -18,20 +18,9 @@ function hashString(str: string): number {
   return Math.abs(hash);
 }
 
-// --- Price configs so different tickers look realistic ---
+// --- Generic fallback price config (no hardcoded tickers) ---
 
-const PRICE_SEEDS: Record<string, { base: number; volatility: number }> = {
-  AAPL: { base: 189, volatility: 3.5 },
-  MSFT: { base: 415, volatility: 6 },
-  GOOGL: { base: 175, volatility: 4 },
-  AMZN: { base: 200, volatility: 5 },
-  TSLA: { base: 245, volatility: 12 },
-  NVDA: { base: 880, volatility: 20 },
-  META: { base: 510, volatility: 8 },
-  SPY: { base: 520, volatility: 4 },
-};
-
-const DEFAULT_SEED = { base: 150, volatility: 4 };
+const DEFAULT_SEED = { base: 150, volatility: 5 };
 
 // --- Candle generator ---
 
@@ -41,7 +30,7 @@ function generateCandles(
   startDate: Date,
   stepDays: number
 ): AlphaVantageCandle[] {
-  const config = PRICE_SEEDS[symbol.toUpperCase()] ?? DEFAULT_SEED;
+  const config = DEFAULT_SEED;
   const rand = seededRandom(hashString(symbol.toUpperCase() + stepDays));
   const candles: AlphaVantageCandle[] = [];
 
@@ -73,7 +62,7 @@ function generateCandles(
 }
 
 function generateIntraday(symbol: string, days: number): AlphaVantageCandle[] {
-  const config = PRICE_SEEDS[symbol.toUpperCase()] ?? DEFAULT_SEED;
+  const config = DEFAULT_SEED;
   const rand = seededRandom(hashString(symbol.toUpperCase() + "4h"));
   const candles: AlphaVantageCandle[] = [];
   const start = new Date("2025-02-03");
@@ -123,12 +112,4 @@ export async function fetchDailyCandles(
     case "monthly":
       return generateCandles(symbol, 24, new Date("2023-03-01"), 30);
   }
-}
-
-// --- Symbol search fallback (used when Alpha Vantage is rate-limited) ---
-
-export function searchSymbolFallback(keywords: string): SymbolMatch[] {
-  if (!keywords.trim()) return [];
-  const symbol = keywords.trim().toUpperCase();
-  return [{ symbol, name: symbol, type: "Equity", region: "United States" }];
 }

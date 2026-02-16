@@ -13,13 +13,6 @@ export interface AlphaVantageCandle {
   volume: number;
 }
 
-export interface SymbolMatch {
-  symbol: string;
-  name: string;
-  type: string;
-  region: string;
-}
-
 export class AlphaVantageError extends Error {
   constructor(
     message: string,
@@ -247,49 +240,3 @@ export async function fetchDailyCandles(
   return timeframe === "4h" ? aggregateTo4Hour(candles) : candles;
 }
 
-export async function searchSymbol(
-  keywords: string
-): Promise<SymbolMatch[]> {
-  if (!keywords.trim()) return [];
-
-  enforceRateLimit();
-
-  const apiKey = getApiKey();
-  const params = new URLSearchParams({
-    function: "SYMBOL_SEARCH",
-    keywords: keywords.trim(),
-    apikey: apiKey,
-  });
-
-  const url = `${BASE_URL}?${params.toString()}`;
-
-  let res: Response;
-  try {
-    res = await fetch(url);
-  } catch (err) {
-    throw new AlphaVantageError(
-      `Network error: ${err instanceof Error ? err.message : "Failed to reach Alpha Vantage"}`,
-      "NETWORK"
-    );
-  }
-
-  if (!res.ok) {
-    throw new AlphaVantageError(
-      `Symbol search returned HTTP ${res.status}`,
-      "NETWORK"
-    );
-  }
-
-  const data = await res.json();
-  checkResponseBody(data);
-
-  const matches = data["bestMatches"];
-  if (!Array.isArray(matches)) return [];
-
-  return matches.map((m: Record<string, string>) => ({
-    symbol: m["1. symbol"],
-    name: m["2. name"],
-    type: m["3. type"],
-    region: m["4. region"],
-  }));
-}
