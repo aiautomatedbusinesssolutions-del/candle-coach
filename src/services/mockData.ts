@@ -125,30 +125,10 @@ export async function fetchDailyCandles(
   }
 }
 
-// --- Symbol search mock ---
+// --- Symbol search fallback (used when Alpha Vantage is rate-limited) ---
 
-const MOCK_SYMBOLS: SymbolMatch[] = [
-  { symbol: "AAPL", name: "Apple Inc", type: "Equity", region: "United States" },
-  { symbol: "MSFT", name: "Microsoft Corporation", type: "Equity", region: "United States" },
-  { symbol: "GOOGL", name: "Alphabet Inc - Class A", type: "Equity", region: "United States" },
-  { symbol: "AMZN", name: "Amazon.com Inc", type: "Equity", region: "United States" },
-  { symbol: "TSLA", name: "Tesla Inc", type: "Equity", region: "United States" },
-  { symbol: "NVDA", name: "NVIDIA Corporation", type: "Equity", region: "United States" },
-  { symbol: "META", name: "Meta Platforms Inc", type: "Equity", region: "United States" },
-  { symbol: "SPY", name: "SPDR S&P 500 ETF Trust", type: "ETF", region: "United States" },
-  { symbol: "QQQ", name: "Invesco QQQ Trust", type: "ETF", region: "United States" },
-  { symbol: "JPM", name: "JPMorgan Chase & Co", type: "Equity", region: "United States" },
-  { symbol: "V", name: "Visa Inc", type: "Equity", region: "United States" },
-  { symbol: "WMT", name: "Walmart Inc", type: "Equity", region: "United States" },
-];
-
-export async function searchSymbol(keywords: string): Promise<SymbolMatch[]> {
+export function searchSymbolFallback(keywords: string): SymbolMatch[] {
   if (!keywords.trim()) return [];
-
-  await new Promise((r) => setTimeout(r, 100));
-
-  const q = keywords.toUpperCase().trim();
-  return MOCK_SYMBOLS.filter(
-    (s) => s.symbol.includes(q) || s.name.toUpperCase().includes(q)
-  ).slice(0, 6);
+  const symbol = keywords.trim().toUpperCase();
+  return [{ symbol, name: symbol, type: "Equity", region: "United States" }];
 }

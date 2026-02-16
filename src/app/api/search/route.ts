@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AlphaVantageError } from "@/services/alphaVantage";
-import { searchSymbol } from "@/services/mockData"; // kept on mock to save API quota
+import { searchSymbol, AlphaVantageError } from "@/services/alphaVantage";
+import { searchSymbolFallback } from "@/services/mockData";
 
 export async function GET(request: NextRequest) {
   const keywords = request.nextUrl.searchParams.get("q");
@@ -16,9 +16,14 @@ export async function GET(request: NextRequest) {
     const results = await searchSymbol(keywords);
     return NextResponse.json({ results });
   } catch (err) {
+    // On rate limit, fall back to basic symbol echo
+    if (err instanceof AlphaVantageError && err.code === "RATE_LIMITED") {
+      const results = searchSymbolFallback(keywords);
+      return NextResponse.json({ results, fallback: true });
+    }
+
     if (err instanceof AlphaVantageError) {
       const status =
-        err.code === "RATE_LIMITED" ? 429 :
         err.code === "INVALID_KEY" ? 401 :
         err.code === "NETWORK" ? 502 : 500;
 

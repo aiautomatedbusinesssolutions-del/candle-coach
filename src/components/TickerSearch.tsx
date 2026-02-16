@@ -105,6 +105,16 @@ export default function TickerSearch({ onSelect }: TickerSearchProps) {
             setQuery(e.target.value);
             setSelectedDisplay("");
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && query.trim()) {
+              const symbol = query.trim().toUpperCase();
+              setSelectedDisplay(symbol);
+              setQuery("");
+              setResults([]);
+              setIsOpen(false);
+              onSelect(symbol);
+            }
+          }}
           placeholder={selectedDisplay || "Search ticker symbol (e.g. AAPL, TSLA)"}
           className="w-full rounded-lg border border-slate-700 bg-slate-800 py-3 pl-10 pr-10 text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
         />
